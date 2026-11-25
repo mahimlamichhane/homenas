@@ -1,0 +1,11 @@
+[Unit]
+Description=Log SSD freeze events to the backup HDD
+RequiresMountsFor=/mnt/backup-hdd
+
+[Service]
+ExecStartPre=/bin/bash -c 'echo "=== BOOT $(date -Is) kernel $(uname -r) cmdline: $(cat /proc/cmdline) ===" >> /mnt/backup-hdd/ssd_freeze_log.txt'
+ExecStart=/bin/bash -c 'journalctl -k -f -n 0 -o short-iso | grep --line-buffered -i -E "ata1.*(exception|failed command|hard resetting)|I/O error, dev|emergency_ro|Remounting filesystem read-only" >> /mnt/backup-hdd/ssd_freeze_log.txt'
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
