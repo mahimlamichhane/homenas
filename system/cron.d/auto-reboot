@@ -1,0 +1,4 @@
+# Reboot the NAS every 2nd day at 04:00 (the script decides which days). Remove this file to stop.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+0 4 * * * root /usr/local/sbin/auto-reboot.sh
