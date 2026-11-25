@@ -1,0 +1,55 @@
+# Fresh Nextcloud stack - 2026-11-13
+# Passwords come from .env (see .env.example). Never commit the real .env.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: mariadb:10.11
+    container_name: nextcloud-db
+    restart: unless-stopped
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb-log-file-size=128M --slow-query-log=1 --long-query-time=2 --tmp-table-size=64M --max-heap-table-size=64M
+    environment:
+      - MARIADB_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MARIADB_DATABASE=${MYSQL_DATABASE}
+      - MARIADB_USER=${MYSQL_USER}
+      - MARIADB_PASSWORD=${MYSQL_PASSWORD}
+      - MARIADB_AUTO_UPGRADE=1
+      - TZ=Asia/Kathmandu
+    volumes:
+      - type: bind
+        source: /mnt/fast-storage/mariadb_data
+        target: /var/lib/mysql
+        bind:
+          create_host_path: false
+    logging: *logging
+
+  app:
+    build:
+      context: .
+      network: host
+    image: nextcloud-custom:35
+    container_name: nextcloud-app
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "8080:80"
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - PHP_MEMORY_LIMIT=1024M
+      - PHP_UPLOAD_LIMIT=10G
+      - TZ=Asia/Kathmandu
+    volumes:
+      - type: bind
+        source: /mnt/fast-storage/nextcloud_data
+        target: /var/www/html
+        bind:
+          create_host_path: false
+    logging: *logging
