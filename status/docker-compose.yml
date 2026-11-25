@@ -1,0 +1,17 @@
+# Public status feed for your status page
+# Serves only ~/status/www/status.json (written every 5 min by gen_status.py).
+services:
+  status:
+    image: nginx:1.27-alpine
+    container_name: nas-status
+    restart: unless-stopped
+    ports:
+      - "${NAS_IP:-127.0.0.1}:8090:80"
+    volumes:
+      - ./www:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    mem_limit: 64m
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
